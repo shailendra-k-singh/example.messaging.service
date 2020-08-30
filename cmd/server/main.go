@@ -5,6 +5,8 @@ import (
 
 	"github.com/shailendra-k-singh/example.messaging.service/app"
 	logger "github.com/shailendra-k-singh/example.messaging.service/pkg/log"
+
+	_ "github.com/shailendra-k-singh/example.messaging.service/docs"
 )
 
 func main() {

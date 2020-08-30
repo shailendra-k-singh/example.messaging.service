@@ -1,0 +1,199 @@
+basePath: /
+consumes:
+- application/json
+definitions:
+  MessageObj:
+    properties:
+      id:
+        format: int64
+        type: integer
+        x-go-name: Id
+      is-palindrome:
+        type: boolean
+        x-go-name: IsPalindrome
+      text:
+        type: string
+        x-go-name: Text
+    type: object
+    x-go-package: github.com/shailendra-k-singh/example.messaging.service/message
+host: localhost
+info:
+  description: Documentation of Messaging Service API.
+  title: Messaging Service.
+  version: v1
+paths:
+  /v1/messages:
+    get:
+      operationId: getAllMessageID
+      responses:
+        "200":
+          $ref: '#/responses/getAllMessagesSuccResponse'
+        "404":
+          $ref: '#/responses/getAllMessagesFailResponse'
+      summary: Retrieves all created messages.
+      tags:
+      - get-all-messages
+    post:
+      operationId: createMessageRequest
+      parameters:
+      - description: Accepts a string text as input
+        in: body
+        name: Body
+        schema:
+          properties:
+            text:
+              type: string
+              x-go-name: Text
+          type: object
+      responses:
+        "200":
+          $ref: '#/responses/createMessageResponse'
+      summary: Creates a message record based on input text and returns the same.
+      tags:
+      - create-messages
+  /v1/messages/{id}:
+    delete:
+      operationId: getDelMessageID
+      parameters:
+      - format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+        x-go-name: Id
+      responses:
+        "204":
+          $ref: '#/responses/delMessageSuccResponse'
+        "404":
+          $ref: '#/responses/delMessageFailResponse'
+      summary: Deletes a message with input id as path param. Returns error if message not found.
+      tags:
+      - del-message
+    get:
+      operationId: getMessageID
+      parameters:
+      - format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+        x-go-name: Id
+      responses:
+        "200":
+          $ref: '#/responses/getMessageSuccResponse'
+        "404":
+          $ref: '#/responses/getMessageFailResponse'
+      summary: Retrieves a message with input id as path param. Returns error if message not found.
+      tags:
+      - get-message
+  /v1/messages/{id}?is-palindrome:
+    get:
+      description: |-
+        Retrieves a message with input id as path param, performs a palindrome check on the text
+        and returns the result in field "is-palindrome" in the response, else returns error if message not found.
+      operationId: checkIfPalindrome
+      parameters:
+      - format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+        x-go-name: Id
+      - format: int64
+        in: query
+        name: is-palindrome
+        required: true
+        type: integer
+        x-go-name: IsPalindrome
+      responses:
+        "200":
+          $ref: '#/responses/getPMessageSuccResponse'
+        "404":
+          $ref: '#/responses/getPMessageFailResponse'
+      tags:
+      - get-message-pcheck
+produces:
+- application/json
+responses:
+  createMessageResponse:
+    description: Returns the created Message record containing system created ID and input text.
+    schema:
+      properties:
+        id:
+          format: int64
+          type: integer
+          x-go-name: Id
+        text:
+          type: string
+          x-go-name: Text
+      type: object
+  delMessageFailResponse:
+    description: Returns error response in case of any failure.
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: Error
+      type: object
+  delMessageSuccResponse:
+    description: Returns no content.
+  getAllMessagesFailResponse:
+    description: Returns error response in case of any failure.
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: Error
+      type: object
+  getAllMessagesSuccResponse:
+    description: Returns all the stored message records.
+    schema:
+      items:
+        properties:
+          id:
+            format: int64
+            type: integer
+            x-go-name: Id
+          text:
+            type: string
+            x-go-name: Text
+        type: object
+      type: array
+  getMessageFailResponse:
+    description: Returns error response in case of any failure.
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: Error
+      type: object
+  getMessageSuccResponse:
+    description: Returns the specified message record.
+    schema:
+      properties:
+        id:
+          format: int64
+          type: integer
+          x-go-name: Id
+        text:
+          type: string
+          x-go-name: Text
+      type: object
+  getPMessageFailResponse:
+    description: Returns error response in case of any failure.
+    schema:
+      properties:
+        error:
+          type: string
+          x-go-name: Error
+      type: object
+  getPMessageSuccResponse:
+    description: Returns the specified message record.
+    schema:
+      $ref: '#/definitions/MessageObj'
+schemes:
+- http
+securityDefinitions:
+  basic:
+    type: basic
+swagger: "2.0"

@@ -20,11 +20,11 @@ const (
 	defaultBitsize = 64
 )
 
-type msgRequestBody struct {
+type MsgRequestBody struct {
 	Text string `json:"text"`
 }
 
-type errMsg struct {
+type ErrMsg struct {
 	Error string `json:"error"`
 }
 
@@ -71,7 +71,7 @@ func jsonResponse(w http.ResponseWriter, resp interface{}, code int) {
 	}
 }
 
-func respondWithError(w http.ResponseWriter, message errMsg, code int) {
+func respondWithError(w http.ResponseWriter, message ErrMsg, code int) {
 	jsonResponse(w, message, code)
 }
 
@@ -80,17 +80,17 @@ func (r *appRouter) createMessage(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error("Error while reading request body: ", err)
 		r.addSpan(req.Context(), http.StatusBadRequest, req)
-		respondWithError(w, errMsg{"Invalid request body"}, http.StatusBadRequest)
+		respondWithError(w, ErrMsg{"Invalid request body"}, http.StatusBadRequest)
 		return
 	}
 	log.Debug("POST: Received request body: ", string(body))
 
-	msg := msgRequestBody{}
+	msg := MsgRequestBody{}
 	err = json.Unmarshal(body, &msg)
 	if err != nil {
 		log.Error("error while unmarshalling request body: ", err)
 		r.addSpan(req.Context(), http.StatusBadRequest, req)
-		respondWithError(w, errMsg{"Invalid request body"}, http.StatusBadRequest)
+		respondWithError(w, ErrMsg{"Invalid request body"}, http.StatusBadRequest)
 		return
 	}
 
@@ -99,14 +99,14 @@ func (r *appRouter) createMessage(w http.ResponseWriter, req *http.Request) {
 	if l < 1 {
 		log.Error("incorrect input format or message length zero")
 		r.addSpan(req.Context(), http.StatusBadRequest, req)
-		respondWithError(w, errMsg{"Invalid input body, must be a non-zero length string in specified format"}, http.StatusBadRequest)
+		respondWithError(w, ErrMsg{"Invalid input body, must be a non-zero length string in specified format"}, http.StatusBadRequest)
 		return
 	}
 	if l > r.limit {
 		log.Errorf("message length %d greater than limit %d", l, r.limit)
 		msg := fmt.Sprintf("Input text length must be in range 1-%d", r.limit)
 		r.addSpan(req.Context(), http.StatusBadRequest, req)
-		respondWithError(w, errMsg{msg}, http.StatusBadRequest)
+		respondWithError(w, ErrMsg{msg}, http.StatusBadRequest)
 		return
 	}
 
@@ -124,7 +124,7 @@ func (r *appRouter) validateMsgID(w http.ResponseWriter, req *http.Request) (int
 	if !ok {
 		err = fmt.Errorf("id param not present in request path")
 		r.addSpan(req.Context(), http.StatusBadRequest, req)
-		respondWithError(w, errMsg{"Message id not passed in the request. Retry in the format: /v1/messages/{id} "}, http.StatusBadRequest)
+		respondWithError(w, ErrMsg{"Message id not passed in the request. Retry in the format: /v1/messages/{id} "}, http.StatusBadRequest)
 		return 0, err
 	}
 
@@ -132,7 +132,7 @@ func (r *appRouter) validateMsgID(w http.ResponseWriter, req *http.Request) (int
 	if err != nil || val < 1 {
 		err = fmt.Errorf("invalid message id value: %s,err:%s ", id, err)
 		r.addSpan(req.Context(), http.StatusBadRequest, req)
-		respondWithError(w, errMsg{"Invalid message id value, should be a valid positive integer"}, http.StatusBadRequest)
+		respondWithError(w, ErrMsg{"Invalid message id value, should be a valid positive integer"}, http.StatusBadRequest)
 		return 0, err
 	}
 	log.Debug("Validated message ID successfully")
@@ -149,7 +149,7 @@ func (r *appRouter) getMessage(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error("error while retrieving message: ", err)
 		r.addSpan(req.Context(), http.StatusNotFound, req)
-		respondWithError(w, errMsg{err.Error()}, http.StatusNotFound)
+		respondWithError(w, ErrMsg{err.Error()}, http.StatusNotFound)
 		return
 	}
 	// check for optional query param "is-palindrome"
@@ -159,7 +159,7 @@ func (r *appRouter) getMessage(w http.ResponseWriter, req *http.Request) {
 		if len(val) > 0 && val[0] != "" {
 			log.Error("query param passed incorrectly: ", param)
 			r.addSpan(req.Context(), http.StatusBadRequest, req)
-			respondWithError(w, errMsg{"Incorrect URL structure, should be passed as: /v1/messages/{id}?is-palindrome "}, http.StatusBadRequest)
+			respondWithError(w, ErrMsg{"Incorrect URL structure, should be passed as: /v1/messages/{id}?is-palindrome "}, http.StatusBadRequest)
 			return
 		}
 		resp.IsPalindrome = checkIfPalindrome(resp.Text)
@@ -175,7 +175,7 @@ func (r *appRouter) getAllMessages(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error("error while retrieving messages: ", err)
 		r.addSpan(req.Context(), http.StatusNotFound, req)
-		respondWithError(w, errMsg{err.Error()}, http.StatusNotFound)
+		respondWithError(w, ErrMsg{err.Error()}, http.StatusNotFound)
 		return
 	}
 	r.addSpan(req.Context(), http.StatusOK, req)
@@ -189,14 +189,14 @@ func (r *appRouter) deleteMessage(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error("error validating request: ", err)
 		r.addSpan(req.Context(), http.StatusBadRequest, req)
-		respondWithError(w, errMsg{err.Error()}, http.StatusBadRequest)
+		respondWithError(w, ErrMsg{err.Error()}, http.StatusBadRequest)
 		return
 	}
 	err = r.m.Delete(id)
 	if err != nil {
 		log.Error("error while deleting message: ", err)
 		r.addSpan(req.Context(), http.StatusNotFound, req)
-		respondWithError(w, errMsg{err.Error()}, http.StatusNotFound)
+		respondWithError(w, ErrMsg{err.Error()}, http.StatusNotFound)
 		return
 	}
 	r.addSpan(req.Context(), http.StatusNoContent, req)
