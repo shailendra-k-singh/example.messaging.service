@@ -1,0 +1,30 @@
+version: "3.7"
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+  msg-server:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: [
+      "--req-port",
+      ":8090",
+      "--tracing-host",
+      "jaeger",
+      "--tracing-addr",
+      ":6831",
+      "--log-level",
+      "info"
+    ]
+    ports:
+      - "8090:8090"
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - jaeger
